@@ -1,0 +1,15 @@
+## =============================================================================
+## NaviCore AI — Android Configuration & Map Tile Provider Properties
+## =============================================================================
+## Location: android_app/local.properties (DO NOT COMMIT SECRETS TO GIT)
+
+## 1. Android SDK Root (Set to your local Android SDK directory)
+# sdk.dir=C:\\Users\\YourUsername\\AppData\\Local\\Android\\Sdk
+
+## 2. Map Provider Configuration
+## DEFAULT: OpenFreeMap Vector Tiles (100% Free, Zero API Key Required, 3D Buildings)
+MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty
+
+## Optional: Custom Map Provider API Key (e.g. MapTiler, Stadia Maps, CARTO Enterprise)
+## Leave blank for default free OpenFreeMap vector / OpenStreetMap raster tiles.
+MAP_TILE_API_KEY=

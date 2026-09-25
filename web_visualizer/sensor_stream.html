@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NaviCore AI — Live Phone Sensor Streamer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #090d16;
+            --card-bg: #111827;
+            --cyan: #00f2fe;
+            --green: #10b981;
+            --red: #ef4444;
+            --text: #f3f4f6;
+            --text-dim: #9ca3af;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-color);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-height: 100vh;
+        }
+        header {
+            text-align: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 { font-size: 1.4rem; font-weight: 800; }
+        h1 span { color: var(--cyan); }
+        .subtitle { font-size: 0.78rem; color: var(--text-dim); margin-top: 4px; }
+        
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--cyan);
+            letter-spacing: 0.5px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+            width: fit-content;
+        }
+        .status-badge.connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--green);
+            border-color: var(--green);
+        }
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .sensor-item {
+            background: #1a2234;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .sensor-label { font-size: 0.7rem; color: var(--text-dim); }
+        .sensor-val { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 700; color: var(--text); }
+        
+        .btn {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #050b14;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+            text-align: center;
+        }
+        .btn:active { transform: scale(0.98); }
+        .instruction {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>NaviCore <span>AI</span></h1>
+        <div class="subtitle">Live Phone Sensor Bridge to NaviCore Engine</div>
+    </header>
+
+    <div class="card">
+        <div class="card-title">Live Sensor Stream Status</div>
+        <div id="stream-status" class="status-badge">DISCONNECTED</div>
+        <button id="btn-toggle-stream" class="btn">Grant Sensor Access & Start Streaming</button>
+        <p class="instruction">Mount your phone rigidly on your car dashboard or bike phone mount. Live 100 Hz accelerometer, gyroscope, and GPS data will stream directly to NaviCore AI.</p>
+    </div>
+
+    <!-- LIVE GNSS SIGNAL HEALTH & REAL-TIME BLACKOUT DETECTOR -->
+    <div class="card">
+        <div class="card-title">Real-Time GNSS Signal Health & Loss Detector</div>
+        <div class="sensor-grid">
+            <div class="sensor-item">
+                <span class="sensor-label">GNSS State on Device</span>
+                <span class="sensor-val" id="gnss-live-state" style="color: var(--green);">🟢 OPEN SKY</span>
+            </div>
+            <div class="sensor-item">
+                <span class="sensor-label">GPS Accuracy Radius (σ_gps)</span>
+                <span class="sensor-val" id="val-gps-acc">±0.0 m</span>
+            </div>
+            <div class="sensor-item">
+                <span class="sensor-label">GPS Fix Watchdog (Dropout Timer)</span>
+                <span class="sensor-val" id="val-gps-watchdog">0.0 s</span>
+            </div>
+            <div class="sensor-item">
+                <span class="sensor-label">AI Engine Mode</span>
+                <span class="sensor-val" id="val-ai-mode" style="color: var(--cyan);">15-State ESKF Bias Learn</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Real-Time Physical IMU Values (100 Hz)</div>
+        <div class="sensor-grid">
+            <div class="sensor-item">
+                <span class="sensor-label">Accel X (Lateral)</span>
+                <span class="sensor-val" id="val-ax">0.00 m/s²</span>
+            </div>
+            <div class="sensor-item">
+                <span class="sensor-label">Accel Y (Forward)</span>
+                <span class="sensor-val" id="val-ay">0.00 m/s²</span>
+            </div>
+            <div class="sensor-item">
+                <span class="sensor-label">Accel Z (Gravity)</span>
+                <span class="sensor-val" id="val-az">9.81 m/s²</span>
+            </div>
+            <div class="sensor-item">
+                <span class="sensor-label">Gyro Z (Yaw Rate)</span>
+                <span class="sensor-val" id="val-gz">0.00 rad/s</span>
+            </div>
+            <div class="sensor-item">
+                <span class="sensor-label">GPS Latitude</span>
+                <span class="sensor-val" id="val-lat">--.----</span>
+            </div>
+            <div class="sensor-item">
+                <span class="sensor-label">GPS Longitude</span>
+                <span class="sensor-val" id="val-lon">--.----</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isStreaming = false;
+        let ws = null;
+        let lastGpsTimestamp = Date.now();
+        let gpsWatchdogTimer = null;
+
+        const statusBadge = document.getElementById('stream-status');
+        const btnToggle = document.getElementById('btn-toggle-stream');
+
+        const gnssLiveState = document.getElementById('gnss-live-state');
+        const elGpsAcc = document.getElementById('val-gps-acc');
+        const elGpsWatchdog = document.getElementById('val-gps-watchdog');
+        const elAiMode = document.getElementById('val-ai-mode');
+
+        const elAx = document.getElementById('val-ax');
+        const elAy = document.getElementById('val-ay');
+        const elAz = document.getElementById('val-az');
+        const elGz = document.getElementById('val-gz');
+        const elLat = document.getElementById('val-lat');
+        const elLon = document.getElementById('val-lon');
+
+        let currentSensor = {
+            ax: 0, ay: 0, az: 9.81,
+            gx: 0, gy: 0, gz: 0,
+            lat: 0.0, lon: 0.0, speed: 0.0,
+            accuracy: 5.0,
+            gnssLost: false,
+            timestamp: Date.now()
+        };
+
+        function connectWebSocket() {
+            const host = window.location.hostname || 'localhost';
+            ws = new WebSocket(`ws://${host}:8765`);
+
+            ws.onopen = () => {
+                statusBadge.innerText = 'STREAMING LIVE (100 Hz)';
+                statusBadge.className = 'status-badge connected';
+                btnToggle.innerText = 'Stop Live Stream';
+                btnToggle.style.background = '#ef4444';
+            };
+
+            ws.onclose = () => {
+                statusBadge.innerText = 'DISCONNECTED';
+                statusBadge.className = 'status-badge';
+                btnToggle.innerText = 'Grant Sensor Access & Start Streaming';
+                btnToggle.style.background = 'linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)';
+            };
+        }
+
+        function startGpsLossWatchdog() {
+            clearInterval(gpsWatchdogTimer);
+            gpsWatchdogTimer = setInterval(() => {
+                const elapsedSec = (Date.now() - lastGpsTimestamp) / 1000;
+                elGpsWatchdog.innerText = `${elapsedSec.toFixed(1)} s`;
+
+                // REAL DEVICE GNSS LOSS IDENTIFICATION LOGIC
+                // Criterion: No GPS fix for > 1.5s OR Reported accuracy radius > 35 meters
+                if (elapsedSec > 1.5 || currentSensor.accuracy > 35.0) {
+                    currentSensor.gnssLost = true;
+                    gnssLiveState.innerText = '🔴 GNSS BLACKOUT (DEAD RECKONING)';
+                    gnssLiveState.style.color = 'var(--red)';
+                    elAiMode.innerText = '1D-TCN AI Virtual Odometer';
+                    elAiMode.style.color = 'var(--red)';
+                } else {
+                    currentSensor.gnssLost = false;
+                    gnssLiveState.innerText = `🟢 OPEN SKY (±${currentSensor.accuracy.toFixed(1)}m)`;
+                    gnssLiveState.style.color = 'var(--green)';
+                    elAiMode.innerText = '15-State ESKF Bias Learning';
+                    elAiMode.style.color = 'var(--cyan)';
+                }
+            }, 100);
+        }
+
+        async function requestSensorPermissions() {
+            // iOS 13+ permission request
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                try {
+                    const response = await DeviceMotionEvent.requestPermission();
+                    if (response !== 'granted') {
+                        alert('Motion sensor permission was denied.');
+                        return false;
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
+            // Ingest Motion
+            window.addEventListener('devicemotion', (event) => {
+                if (event.accelerationIncludingGravity) {
+                    currentSensor.ax = event.accelerationIncludingGravity.x || 0;
+                    currentSensor.ay = event.accelerationIncludingGravity.y || 0;
+                    currentSensor.az = event.accelerationIncludingGravity.z || 9.81;
+                }
+                if (event.rotationRate) {
+                    currentSensor.gx = (event.rotationRate.alpha || 0) * (Math.PI / 180);
+                    currentSensor.gy = (event.rotationRate.beta || 0) * (Math.PI / 180);
+                    currentSensor.gz = (event.rotationRate.gamma || 0) * (Math.PI / 180);
+                }
+                currentSensor.timestamp = Date.now();
+
+                elAx.innerText = currentSensor.ax.toFixed(2) + ' m/s²';
+                elAy.innerText = currentSensor.ay.toFixed(2) + ' m/s²';
+                elAz.innerText = currentSensor.az.toFixed(2) + ' m/s²';
+                elGz.innerText = currentSensor.gz.toFixed(3) + ' rad/s';
+            }, true);
+
+            // Ingest Geolocation
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition((pos) => {
+                    lastGpsTimestamp = Date.now();
+                    currentSensor.lat = pos.coords.latitude;
+                    currentSensor.lon = pos.coords.longitude;
+                    currentSensor.speed = pos.coords.speed || 0.0;
+                    currentSensor.accuracy = pos.coords.accuracy || 5.0;
+
+                    elLat.innerText = currentSensor.lat.toFixed(5);
+                    elLon.innerText = currentSensor.lon.toFixed(5);
+                    elGpsAcc.innerText = `±${currentSensor.accuracy.toFixed(1)} m`;
+                }, (err) => {
+                    console.warn("GPS error:", err);
+                    currentSensor.gnssLost = true;
+                }, { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 });
+            }
+
+            startGpsLossWatchdog();
+            return true;
+        }
+
+        btnToggle.addEventListener('click', async () => {
+            if (!isStreaming) {
+                const granted = await requestSensorPermissions();
+                if (granted) {
+                    connectWebSocket();
+                    isStreaming = true;
+                    // Send sensor sample at 100 Hz (every 10ms)
+                    setInterval(() => {
+                        if (ws && ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify(currentSensor));
+                        }
+                    }, 10);
+                }
+            } else {
+                if (ws) ws.close();
+                clearInterval(gpsWatchdogTimer);
+                isStreaming = false;
+            }
+        });
+    </script>
+</body>
+</html>

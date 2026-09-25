@@ -1,90 +1,99 @@
-# AI & Machine Learning Architecture Specification
+# AI & Machine Learning Architecture Specification — Extra-Detailed Edition
 
 ## Project: NaviCore AI
 **Module**: Edge-Native Virtual Odometer & Zero-Velocity Neural Engine
 **Smart India Hackathon 2026** | **Problem Statement ID**: 260168
 **Team**: @enigm@ (Team ID: 132834)
-**Document Status**: Architecture design + literature-grounded targets. Section 7's benchmark table is projected/target ranges pending our own measurement — see notes.
+**Document Status**: Architecture design + literature-grounded targets, cross-referenced to Roadmap Phase 1 (Weeks 1–2, owned by the AI/ML Engineer). Section 7's benchmark table is projected/target ranges pending our own measurement.
 
 ---
 
 ## 1. Overview & AI Formulation
 
-Commodity smartphone MEMS IMUs (e.g. Bosch BMI160, ST LSM6DSO, TDK ICM-42688) have low signal-to-noise ratio and temperature-dependent bias drift. Direct double-integration of acceleration:
+Commodity smartphone MEMS IMUs (Bosch BMI160, ST LSM6DSO, TDK ICM-42688) have low SNR and temperature-dependent bias drift. Direct double-integration of acceleration:
 
 $$s(t) = s(0) + v(0)t + \iint_{0}^{t} \left( \mathbf{R}_b^n(\tau) (\mathbf{a}_m(\tau) - \mathbf{b}_a(\tau)) - \mathbf{g}^n \right) d\tau^2$$
 
-produces position error that grows as $O(t^2)$. As an illustrative bound: a constant, uncorrected accelerometer bias of 0.05 m/s² contributes roughly $\frac{1}{2}b_at^2 \approx 22.5$ m of *bias-driven* error alone over 30 seconds — this is one term among several error sources (noise integration, misalignment, heading error), not the full picture, and should not be read as "total system drift."
+produces position error growing as $O(t^2)$. Illustrative bound: a constant, uncorrected 0.05 m/s² accelerometer bias contributes ≈22.5 m of *bias-driven* error alone over 30 seconds — one term among several (noise integration, misalignment, heading error), not total system drift.
 
 NaviCore AI replaces naive double-integration with a hybrid AI-physics approach:
-1. **AI Neural Odometer** — regresses forward speed $V_x(t)$ from a sliding IMU window.
-2. **Kinematic Decoupling** — NHC forces $V_y = 0, V_z = 0$ for wheeled vehicles under non-slip conditions.
-3. **Heading (Yaw) Drift Correction** — continuous gyro-bias tracking plus magnetometer heading fusion, treated as a first-class error-budget item (see Section 5A). In practice, uncorrected heading error is typically the *dominant* contributor to 2D position drift over a route, more so than forward-speed error — this architecture reflects that.
-4. **Physics-Guided ZUPT** — an on-device classifier identifies idle/stopped states and anchors velocity to 0.
+1. **AI Neural Odometer** — regresses forward speed $V_x(t)$ from a sliding IMU window. *(Roadmap Phase 1)*
+2. **Kinematic Decoupling** — NHC forces $V_y=0, V_z=0$. *(Roadmap Phase 2)*
+3. **Heading (Yaw) Drift Correction** — continuous gyro-bias tracking plus magnetometer fusion, a first-class error-budget item, since uncorrected heading error typically dominates 2D position drift more than forward-speed error does. *(Roadmap Phase 2, Days 19–20)*
+4. **Physics-Guided ZUPT** — an on-device classifier anchors velocity to 0 during genuine stops. *(Roadmap Phase 1 classifier + Phase 2 integration)*
 
 ---
 
 ## 2. Dataset & Training Pipeline
 
 ### 2.1 IO-VNBD (Inertial Odometry Vehicle Navigation Benchmark Dataset)
-NaviCore AI's odometer is trained on the public **IO-VNBD** dataset (Onyekpe et al., Coventry University), which pairs:
-- **Inputs**: smartphone IMU (accelerometer + gyroscope), and vehicle-side sensors, collected across the UK, Nigeria, and France.
-- **Ground Truth**: vehicle CAN-bus / ECU data (wheel speed, yaw rate, GPS) collected alongside the phone data.
 
-**Important correction versus earlier drafts of this document:** IO-VNBD's published sampling rate is **10 Hz** for both the smartphone and vehicle CAN-bus streams (per the original Data in Brief / arXiv publication), not 100 Hz. Our on-device ingestion pipeline targets a higher rate (up to 100 Hz, hardware-permitting) for low end-to-end latency. This creates a **rate mismatch between training ground truth and deployment input** that must be handled explicitly:
+NaviCore AI's odometer trains on the public **IO-VNBD** dataset (Onyekpe et al., Coventry University): smartphone IMU + vehicle CAN-bus/ECU ground truth (wheel speed, yaw rate, GPS), collected across the UK, Nigeria, and France.
 
-- **Training-time**: the model is trained and evaluated at the dataset's native 10 Hz (or a resampled rate consistent with it). We do not assume 100 Hz training data exists.
-- **Deployment-time**: on-device IMU is captured at the best achievable rate and **downsampled/decimated (with appropriate anti-aliasing, e.g. a low-pass filter before decimation) to match the trained model's expected input rate**, rather than pretending the model was trained on 100 Hz data it never saw.
-- **Future improvement**: self-collected 100 Hz calibration data (phone-only, using GPS speed as a coarse reference on open roads) is listed as a post-hackathon improvement to eventually retrain at higher rate — not assumed available for Phase 1.
+**Correction versus earlier drafts**: IO-VNBD's published sampling rate is **10 Hz** for both smartphone and CAN-bus streams (per the original Data in Brief / arXiv publication), not 100 Hz. This creates a rate mismatch with the on-device target of up to 100 Hz that must be handled explicitly, not assumed away.
 
-This is a meaningful engineering decision, not a footnote, and should be presented as such rather than glossed over.
+**Roadmap Phase 1, Week 1, Day 1–2 tasks implementing this section**:
+1. Pull the dataset from its official source; log the exact version/commit used.
+2. Empirically verify the sampling rate rather than trusting the earlier assumption.
+3. Write and implement a documented resampling strategy:
+   - **Training-time**: train and evaluate at the dataset's native 10 Hz (or a rate consistent with it).
+   - **Deployment-time**: on-device IMU captured at the best achievable rate, then **anti-alias filtered and decimated** to match the trained model's expected input rate.
+   - **Future improvement** (post-hackathon): self-collected 100 Hz calibration data, using GPS speed as a coarse reference, to eventually retrain at higher rate.
 
-### 2.2 Data Preprocessing & Augmentation
+### 2.2 Data Preprocessing & Augmentation — Roadmap Phase 1, Week 1, Days 2–4
+
 ```
 Raw IMU Stream [ax, ay, az, gx, gy, gz] @ native device rate
                      │
                      ▼
   ┌────────────────────────────────────────────────────────┐
-  │ 1. Anti-alias filter + decimate to training rate        │
-  │    (matches IO-VNBD's 10 Hz ground truth — see 2.1)     │
+  │ 1. Anti-alias filter + decimate to training rate         │  Day 2
+  │    (matches IO-VNBD's 10 Hz ground truth — see §2.1)     │
   └────────────────────────────────────────────────────────┘
                      │
                      ▼
   ┌────────────────────────────────────────────────────────┐
-  │ 2. Dynamic Gravity Decoupling (LPF fc = 0.5 Hz)         │
-  │    Extracts dynamic acceleration: a_dyn = a_raw - g     │
+  │ 2. Dynamic Gravity Decoupling (LPF fc = 0.5 Hz)           │  Day 2–3
+  │    Extracts dynamic acceleration: a_dyn = a_raw - g       │
   └────────────────────────────────────────────────────────┘
                      │
                      ▼
   ┌────────────────────────────────────────────────────────┐
-  │ 3. Coordinate Auto-Normalization                        │
-  │    Transforms body frame to estimated vehicle frame     │
+  │ 3. Coordinate Auto-Normalization                          │  Day 3
+  │    Transforms body frame to estimated vehicle frame       │
   └────────────────────────────────────────────────────────┘
                      │
                      ▼
   ┌────────────────────────────────────────────────────────┐
-  │ 4. Sliding Window Segmentation                          │
-  │    Window length and stride set relative to the         │
-  │    training sample rate (not hardcoded to 100 Hz)       │
+  │ 4. Sliding Window Segmentation                             │  Day 3
+  │    window_len / stride / training_rate_hz as parameters,   │
+  │    never hardcoded literals (CODESTYLE.md §4)               │
   └────────────────────────────────────────────────────────┘
                      │
                      ▼
   ┌────────────────────────────────────────────────────────┐
-  │ 5. Domain-Specific Data Augmentations                   │
-  │    - Synthetic pothole shocks (amplitude spikes)         │
-  │    - Engine idle harmonic injection                      │
-  │    - Sensor noise perturbation (Gaussian jitter)         │
-  │    - Orientation jitter (+/- 15°)                        │
+  │ 5. Domain-Specific Data Augmentations                       │  Day 4
+  │    - Synthetic pothole shocks (amplitude spikes)             │
+  │    - Engine idle harmonic injection (15–30 Hz band)          │
+  │    - Sensor noise perturbation (Gaussian jitter)              │
+  │    - Orientation jitter (±15°)                                │
+  └────────────────────────────────────────────────────────┘
+                     │
+                     ▼
+  ┌────────────────────────────────────────────────────────┐
+  │ 6. Exploratory Data Analysis                                │  Day 5
+  │    Class balance (ZUPT labels), speed distribution,          │
+  │    scenario coverage check                                    │
   └────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Deep Neural Network Architecture
+## 3. Deep Neural Network Architecture — Roadmap Phase 1, Week 2, Days 6–7
 
 ### 3.1 1D Temporal Convolutional Network (TCN) — design, not yet trained/benchmarked
 
-The odometer uses dilated 1D temporal convolutions with residual connections and Squeeze-and-Excitation attention. This table describes the *intended* architecture; parameter counts are computed from the layer definitions and are correct regardless of training status, but no accuracy numbers are claimed here — those belong in Section 7 as targets only.
+Dilated 1D temporal convolutions with residual connections and Squeeze-and-Excitation attention. This table describes the *intended* architecture; parameter counts are computed from the layer definitions and correct regardless of training status — no accuracy numbers are claimed here (see §7).
 
 ```
 ==================================================================================================
@@ -130,10 +139,21 @@ Head_2: Speed Variance (σ²)        [Batch, 1] (Softplus)    65            Feed
 Head_3: ZUPT Idle Classifier       [Batch, 1] (Sigmoid)     65            P(vehicle stopped)
 ==================================================================================================
 Total Parameters: ~122,253 (~489 KB Float32, ~125 KB INT8 — arithmetic only; INT8 accuracy
-                             delta must be measured, not assumed negligible)
+                             delta must be measured, Roadmap Phase 1 Day 10)
 ==================================================================================================
 ```
-*W = window length in samples at the **training** sample rate (see Section 2.1) — not assumed to be 100.
+*W = window length in samples at the **training** sample rate (§2.1) — not assumed to be 100.
+
+### 3.2 Build Steps (Roadmap Phase 1, Week 2)
+| Day | Task |
+| :-- | :-- |
+| 6 | Implement stem + 3 residual blocks + SE attention in PyTorch |
+| 6 | Implement 3 output heads |
+| 7 | Implement multi-task loss (§4) |
+| 7–8 | Train, logging config/seed/dataset version per run |
+| 9 | Evaluate on held-out split: report actual RMSE, ZUPT precision/recall |
+| 9 | INT8 PTQ export |
+| 10 | Report Float32→INT8 accuracy delta; write model-I/O-contract test |
 
 ---
 
@@ -143,19 +163,19 @@ $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{NLL}}(\hat{v}_x, \hat{\sigma}_
 
 ### 1. Gaussian Negative Log-Likelihood (NLL) Loss
 $$\mathcal{L}_{\text{NLL}} = \frac{1}{2N} \sum_{i=1}^{N} \left( \frac{(v_{x,i}^* - \hat{v}_{x,i})^2}{\hat{\sigma}_{v,i}^2} + \ln \hat{\sigma}_{v,i}^2 \right)$$
-Lets the network predict both speed and its own uncertainty, which feeds the ESKF's adaptive measurement covariance.
+Lets the network predict both speed and its own uncertainty, feeding the ESKF's adaptive measurement covariance (Roadmap Phase 2, Day 17).
 
 ### 2. Binary Cross-Entropy (BCE) for ZUPT
 $$\mathcal{L}_{\text{BCE}} = -\frac{1}{N} \sum_{i=1}^{N} \left[ z_i^* \ln \hat{z}_i + (1 - z_i^*) \ln (1 - \hat{z}_i) \right]$$
-where $z_i^* = 1$ if ground-truth speed $v_{x,i}^* < 0.05$ m/s. **Precision/recall of this classifier must be reported once trained** — a false positive silently zeroes the velocity of a moving vehicle, which is a worse user-facing failure than a small amount of drift.
+where $z_i^* = 1$ if ground-truth speed $v_{x,i}^* < 0.05$ m/s. **Precision/recall/false-positive-rate must be reported at Roadmap Phase 1 Day 9** — a false positive silently zeroes the velocity of a moving vehicle, a worse failure than residual drift.
 
 ---
 
 ## 5. Spectral ZUPT Engine (Harmonic Vibration Filtering)
 
-Engine idle vibration is a known confusion source for naive integration:
-- Single-cylinder 2-wheeler idle (1200–1500 RPM): ≈ 20–25 Hz.
-- 4-cylinder car idle (700–900 RPM): ≈ 23–30 Hz (second harmonic).
+Engine idle vibration is a known confusion source:
+- Single-cylinder 2-wheeler idle (1200–1500 RPM): ≈20–25 Hz.
+- 4-cylinder car idle (700–900 RPM): ≈23–30 Hz (2nd harmonic).
 
 ```
 Frequency Spectrum Comparison (illustrative, not measured):
@@ -173,24 +193,24 @@ Frequency Spectrum Comparison (illustrative, not measured):
 Energy-ratio feature:
 $$\text{Energy Ratio} = \frac{\int_{20\text{ Hz}}^{35\text{ Hz}} |X(f)|^2 \, df}{\int_{0.1\text{ Hz}}^{5\text{ Hz}} |X(f)|^2 \, df}$$
 
-Note: computing a 20–35 Hz band cleanly requires a sample rate high enough to resolve it (Nyquist ≥ 70 Hz) — this is only valid at the on-device inference rate, **not** at IO-VNBD's native 10 Hz. The training-time ZUPT label (from thresholding ground-truth speed) is rate-independent, but this particular FFT-band feature is a deployment-time signal computed from the raw on-device stream, separately from the trained classifier — that separation should be made explicit in the implementation, not blurred.
+**Rate caveat**: resolving a 20–35 Hz band cleanly needs a sample rate with Nyquist ≥70 Hz — valid only at on-device inference rate, **not** IO-VNBD's native 10 Hz. The training-time ZUPT label (thresholded ground-truth speed) is rate-independent; this FFT-band feature is a separate, deployment-time signal computed from the raw on-device stream, and that separation is implemented explicitly (Roadmap Phase 2, Day 21) rather than blurred.
 
 ---
 
-## 5A. Heading (Yaw) Drift Correction — *new section, previously missing*
+## 5A. Heading (Yaw) Drift Correction — Roadmap Phase 2, Days 19–20
 
-Forward-speed error alone does not explain most vehicle dead-reckoning failure; heading error typically dominates because a small heading bias compounds with distance travelled (lateral position error grows roughly as distance × sin(heading error)).
+Forward-speed error alone does not explain most vehicle DR failure; heading error typically dominates because a small heading bias compounds with distance travelled (lateral error ≈ distance × sin(heading error)).
 
-**Design**:
-1. **Gyro-bias tracking**: continuously estimate the z-axis (yaw) gyro bias during GNSS-healthy periods, as part of the ESKF state vector — already implied by the 15-state ESKF but must be explicitly validated for the yaw channel specifically, not assumed to fall out of the general bias estimate.
-2. **Magnetometer fusion**: where a reliable magnetometer reading is available (outside heavy magnetic interference — e.g. not clamped directly to a metal handlebar bracket), fuse it as a secondary heading observation with conservative measurement noise.
-3. **Heading reset on map-matching**: once HMM map-matching is available (Section 4.1 of the PRD, stretch goal), use high-confidence road-snap events to reset accumulated heading error — this is a *correction of last resort*, not the primary mechanism.
+**Design & build steps**:
+1. **Day 19 — Gyro-bias tracking**: continuously estimate the z-axis (yaw) gyro bias during GNSS-healthy periods, as an explicit ESKF state component — validated specifically for the yaw channel, not assumed to fall out of a general bias estimate.
+2. **Day 20 — Magnetometer fusion**: where a reliable magnetometer reading is available (flagged unreliable near ferrous mounts), fuse it as a secondary heading observation with conservative measurement noise.
+3. **Phase 3, if map-matching ships — Heading reset on map-matching**: high-confidence road-snap events reset accumulated heading error — a correction of last resort, not the primary mechanism.
 
-This is elevated from an implicit side-effect (as in earlier drafts) to an explicit, separately-tested component.
+Elevated from an implicit side-effect (earlier drafts) to an explicit, separately-tested component with its own Roadmap days.
 
 ---
 
-## 6. On-Device Model Optimization & Hardware Acceleration
+## 6. On-Device Model Optimization & Hardware Acceleration — Roadmap Phase 1 Day 9–10, re-verified Phase 3 Day 38
 
 ### 6.1 Post-Training Quantization (PTQ) Workflow
 ```
@@ -206,25 +226,25 @@ This is elevated from an implicit side-effect (as in earlier drafts) to an expli
    - Input/Output Types: Float32 (transparent IO wrappers)
                       │
                       ▼
-[ navicore_odometer_int8.tflite — accuracy delta vs Float32 to be measured ]
+[ navicore_odometer_int8.tflite — accuracy delta measured, Phase 1 Day 10 ]
 ```
 
 ### 6.2 Target Hardware Delegates
-1. **Android NNAPI Delegate** where the device chipset actually exposes a working delegate (Hexagon DSP, MediaTek APU, Tensor TPU) — availability must be checked per test device, not assumed universal.
-2. **Arm NEON / XNNPACK CPU fallback** — the baseline path that must work on every device, since NPU availability is not guaranteed on budget hardware.
+1. **Android NNAPI Delegate** where the device chipset actually exposes a working delegate (Hexagon DSP, MediaTek APU, Tensor TPU) — checked per test device at Phase 3 Day 38, not assumed universal.
+2. **Arm NEON / XNNPACK CPU fallback** — the baseline path that must work on every device.
 
 ---
 
 ## 7. Benchmarks & Evaluation — Targets, Not Measured Results
 
-**Earlier drafts of this document presented a table of exact drift figures (e.g. "0.8 m over 30 s," "0.00 m locked") as "Experimental Benchmarks." No such experiments have been run yet, and those figures are removed.** What follows are literature-informed target *ranges*, to be replaced with our own measured numbers once training and testing are complete.
+**Earlier drafts presented exact drift figures (e.g. "0.8 m over 30 s," "0.00 m locked") as "Experimental Benchmarks." No such experiments have been run yet, and those figures are removed.** What follows are literature-informed target *ranges*, replaced with our own measured numbers at Roadmap Phase 1 Day 9 (offline) and Phase 4 (optional live test).
 
-| Navigation Method | Typical Reported Behaviour (from literature, for context) |
+| Navigation Method | Typical Reported Behaviour (literature, for context only) |
 | :--- | :--- |
-| Raw IMU double-integration | Drift of tens to hundreds of metres within 15–30 s of blackout — well documented; matches our motivating derivation in Section 1. |
+| Raw IMU double-integration | Drift of tens to hundreds of metres within 15–30 s of blackout — matches the motivating derivation in §1. |
 | Classical EKF (IMU-only, no learned odometer) | Meaningfully better than raw integration but still drifts substantially over tens of seconds without aiding. |
-| Learned inertial odometry (RoNIN, AI-IMU / Brossard et al., WhONet-style approaches) | Report drift on the order of a few percent of distance under favorable conditions in their own evaluation setups — figures are **not directly transferable** to our dataset, sensors, or vehicle types without re-measurement. |
+| Learned inertial odometry (RoNIN, AI-IMU/Brossard et al., WhONet-style) | Report drift on the order of a few percent of distance under favorable conditions in their own setups — **not directly transferable** to our dataset, sensors, or vehicle types without re-measurement. |
 
-**Our target for Phase 1**: report an actual measured velocity RMSE (m/s) on held-out IO-VNBD data, and an actual measured position-drift-over-distance number from our own simulated-blackout evaluation script — both published with the exact test conditions (route length, blackout duration, vehicle/mount type), replacing this table once available.
+**Phase 1 deliverable (Day 9)**: measured velocity RMSE (m/s) on held-out IO-VNBD data, plus a measured position-drift-over-distance number from our own simulated-blackout evaluation script, published with exact test conditions (route length, blackout duration, vehicle/mount type) — replacing this table.
 
-**Explicitly not claimed until measured**: sub-1-metre drift figures, exact "0.00 m" ZUPT lock, or any single-number headline stat presented without a described test methodology.
+**Explicitly not claimed until measured**: sub-1-metre drift figures, exact "0.00 m" ZUPT lock, or any single-number headline stat without a described test methodology.

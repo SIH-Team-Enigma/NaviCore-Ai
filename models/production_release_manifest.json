@@ -1,0 +1,276 @@
+{
+  "project": "NaviCore AI",
+  "sih_year": 2026,
+  "problem_id": "260168",
+  "team": "@enigm@ (132834)",
+  "timestamp": "2026-09-25T12:34:43Z",
+  "layers_passed": "7/7",
+  "manifest": {
+    "1. Core C++ Native Fusion Engine": [
+      {
+        "file": "core_cpp/include/navicore/types.hpp",
+        "exists": true,
+        "size_bytes": 2226,
+        "sha256": "bb592f062f0ccba77d790a8eb7624a2e404dc80d826d0972172f122908b0eae3"
+      },
+      {
+        "file": "core_cpp/include/navicore/eskf.hpp",
+        "exists": true,
+        "size_bytes": 1935,
+        "sha256": "dc69bcf2407e225860163c0aaf267893505d9fc0c47a9c2d60cd7f3478876d23"
+      },
+      {
+        "file": "core_cpp/include/navicore/auto_calib.hpp",
+        "exists": true,
+        "size_bytes": 1600,
+        "sha256": "4678c373b69fbaf67e1f8c94e5f429bbff82d3df4460eab4db938d415f3be210"
+      },
+      {
+        "file": "core_cpp/include/navicore/nhc_zupt.hpp",
+        "exists": true,
+        "size_bytes": 1973,
+        "sha256": "e652df2566fb36c0a3fefd7bf42cd945eacc7b247f09c89a272017ab6a2385a6"
+      },
+      {
+        "file": "core_cpp/include/navicore/hmm_matcher.hpp",
+        "exists": true,
+        "size_bytes": 1427,
+        "sha256": "57fd4f13cacc17d678792a7cf33ccb80d71fd7fd83e2952c26f4629f3259a071"
+      },
+      {
+        "file": "core_cpp/include/navicore/barometer_tracker.hpp",
+        "exists": true,
+        "size_bytes": 2343,
+        "sha256": "0dc8316733698dd350c195211ec02a6e0a0f4fa751c5b5764974efe3cc1b45e9"
+      },
+      {
+        "file": "core_cpp/include/navicore/vehicle_profiles.hpp",
+        "exists": true,
+        "size_bytes": 3810,
+        "sha256": "5ae2f5a05086998f01c10f1bf1f58b10717164b008d19a3a2dca9750d2cceb2c"
+      },
+      {
+        "file": "core_cpp/include/navicore/rerouting_engine.hpp",
+        "exists": true,
+        "size_bytes": 3409,
+        "sha256": "8f11782582073d0176c0b86c5fed128736a788187183fbb58420504b87e23bfa"
+      },
+      {
+        "file": "core_cpp/include/navicore/sdk_api.h",
+        "exists": true,
+        "size_bytes": 1151,
+        "sha256": "be1f9d10bc3250868493dd2ea81cafb5b21849cea86546e5c472587f32cf0c11"
+      },
+      {
+        "file": "core_cpp/src/eskf.cpp",
+        "exists": true,
+        "size_bytes": 4712,
+        "sha256": "77902a9ad3aa9ea076e455a901b95b4474fc6dc7fdb931c46aa5b739aa191b77"
+      },
+      {
+        "file": "core_cpp/src/auto_calib.cpp",
+        "exists": true,
+        "size_bytes": 4991,
+        "sha256": "31f2e0c03db1ffb8719c0269b2fe5d837576ad40c755487b7e732466ce5b4580"
+      },
+      {
+        "file": "core_cpp/src/nhc_zupt.cpp",
+        "exists": true,
+        "size_bytes": 2084,
+        "sha256": "97eef4e3353b5e5b3f8647c067465b997de00f038b7a5f9c94943a1d7a6c3112"
+      },
+      {
+        "file": "core_cpp/src/hmm_matcher.cpp",
+        "exists": true,
+        "size_bytes": 3322,
+        "sha256": "e4580c6769ac6aac8a416fb15d968033fa1081d2440bb55586b9c8ca254736fb"
+      },
+      {
+        "file": "core_cpp/CMakeLists.txt",
+        "exists": true,
+        "size_bytes": 862,
+        "sha256": "36d875fcf5e6781c7cf39a2a3b9534c58af1165a997d431a2cb0efa3c0b1e26b"
+      }
+    ],
+    "2. ML 1D-TCN Neural Odometer & Quantized Models": [
+      {
+        "file": "ml_pipeline/src/models/tcn_odometer.py",
+        "exists": true,
+        "size_bytes": 5451,
+        "sha256": "d462be11459ef7f0213fd1062439e2a498b148212f0082fbac69761356985a50"
+      },
+      {
+        "file": "ml_pipeline/src/models/export_tflite.py",
+        "exists": true,
+        "size_bytes": 2696,
+        "sha256": "7ac30263dfafca00c58c5b731e4bbf15d4d4ab2457c451add0913ba5c78a4920"
+      },
+      {
+        "file": "ml_pipeline/src/dataset/real_data_pipeline.py",
+        "exists": true,
+        "size_bytes": 6365,
+        "sha256": "9acd563786fcbb44f8bab991c75607e49cce3e01ca27f4420252809a37ad1c59"
+      },
+      {
+        "file": "ml_pipeline/src/dataset/preprocessing.py",
+        "exists": true,
+        "size_bytes": 3916,
+        "sha256": "e0d2e581b4190056b244f33c8993bee8533651072016eb54813029af702f3e80"
+      },
+      {
+        "file": "ml_pipeline/src/dataset/augmentations.py",
+        "exists": true,
+        "size_bytes": 4014,
+        "sha256": "a91d4131bdc177c7b2f51148ef3e3a45a154e923dc96931a87e9627797ca03e8"
+      },
+      {
+        "file": "models/exported/navicore_odometer_int8.tflite",
+        "exists": true,
+        "size_bytes": 37,
+        "sha256": "df796feb6c7d1b4dbf1146c6e4bc5e1d862051409ce7e202a4e3825976e6cf60"
+      }
+    ],
+    "3. Real IO-VNBD Dataset Benchmarks": [
+      {
+        "file": "data/sample_iovnbd/S-S1.csv",
+        "exists": true,
+        "size_bytes": 260014,
+        "sha256": "d9d340eff05b1bedff9313d4aab90e751869109a78493247c7ba7fd95039ad03"
+      },
+      {
+        "file": "data/sample_iovnbd/V-S1.csv",
+        "exists": true,
+        "size_bytes": 249580,
+        "sha256": "2a020cf87e6dc5bdc80e202f8154dc1ab2eeee67fbec986c4c1ae70037120750"
+      },
+      {
+        "file": "data/IO-VNBD_SPEC.txt",
+        "exists": true,
+        "size_bytes": 39479,
+        "sha256": "2e0889dfbd050fcb55b2bf5b506f84c11fdf7c70920b1228a964864ab341ad6b"
+      }
+    ],
+    "4. Android NDK JNI Bridge & Mobile Client": [
+      {
+        "file": "android_app/app/src/main/cpp/jni_bridge.cpp",
+        "exists": true,
+        "size_bytes": 2946,
+        "sha256": "95026e80d9443dac398ee376adc888c31472111feff3eba659a1aabc38275a95"
+      },
+      {
+        "file": "android_app/app/src/main/cpp/CMakeLists.txt",
+        "exists": true,
+        "size_bytes": 384,
+        "sha256": "0c1e1f92572085a636e1393b26fd47a43f39687d4b7df32d43fe2cd7247e69f1"
+      },
+      {
+        "file": "android_app/app/src/main/java/org/enigma/navicore/MainActivity.kt",
+        "exists": true,
+        "size_bytes": 2739,
+        "sha256": "a3b10bfa02efc44ba36fdad5d220312b1a6be008126904a6487401d568ed13ef"
+      }
+    ],
+    "5. ROS 2 Robotics Node": [
+      {
+        "file": "ros2_node/src/navicore_node.cpp",
+        "exists": true,
+        "size_bytes": 4240,
+        "sha256": "41fd21b9e9fa8a7168c60c0aacbe2f1fab28e2c990a672b5bac0f89e9892a7f5"
+      },
+      {
+        "file": "ros2_node/CMakeLists.txt",
+        "exists": true,
+        "size_bytes": 754,
+        "sha256": "c531fa44c478a20321a4c57042714fa28c259de4b1b14508a511b1309f83e4b6"
+      },
+      {
+        "file": "ros2_node/package.xml",
+        "exists": true,
+        "size_bytes": 698,
+        "sha256": "e7c6747e0a75e6a170d24143a06da7b222aa1a8b0bcbb6e9c54beec6cd493e07"
+      }
+    ],
+    "6. 3D Web Visualizer & Real-time Sensor Server": [
+      {
+        "file": "web_visualizer/index.html",
+        "exists": true,
+        "size_bytes": 22510,
+        "sha256": "5d3d2d69a212a72ae0204be415a5e0e1a30520f782bd02619c24bd3bebb96226"
+      },
+      {
+        "file": "web_visualizer/app.js",
+        "exists": true,
+        "size_bytes": 45081,
+        "sha256": "6b7d598ffa6a249f917cc123ee3c3cdf0c4fe9ee1d0ef1888956a120560b987c"
+      },
+      {
+        "file": "web_visualizer/style.css",
+        "exists": true,
+        "size_bytes": 25992,
+        "sha256": "ae8cc071b36ecdf420951c0981ec28a7c9a57328ae58eab0c9c8c2564847eb75"
+      },
+      {
+        "file": "web_visualizer/sensor_stream.html",
+        "exists": true,
+        "size_bytes": 10207,
+        "sha256": "699f6be9f6373969656bc2b66830a843ed08e1a4c8da0b12f4c8e942f1c754d9"
+      },
+      {
+        "file": "scripts/launch_visualizer.py",
+        "exists": true,
+        "size_bytes": 1321,
+        "sha256": "b15998bde0608a861bfcc8f2025095cf6d3f4ed32eb8af7f9111beb87ae3be71"
+      },
+      {
+        "file": "scripts/realtime_sensor_server.py",
+        "exists": true,
+        "size_bytes": 4783,
+        "sha256": "fac573e54125a01a295f5af6f44f792778a84fdf6fcd1fb8866993ece46e3318"
+      }
+    ],
+    "7. Python Fleet SDK & Verification Harnesses": [
+      {
+        "file": "sdk_python/navicore_sdk.py",
+        "exists": true,
+        "size_bytes": 4001,
+        "sha256": "e73c42339408738b25ec67d3907a8f34a61a95756394ac6e8b6ba7909e138814"
+      },
+      {
+        "file": "scripts/test_end_to_end.py",
+        "exists": true,
+        "size_bytes": 7431,
+        "sha256": "4beb7bbbff96b4652045d052698bb0fd4f2a8351c72da62002b9e57aad24f9f8"
+      },
+      {
+        "file": "scripts/verify_vehicle_kinematics.py",
+        "exists": true,
+        "size_bytes": 5720,
+        "sha256": "912fc586b4f059e7dac1970e6af6b42a4c4258c072284f3ff3333c17582348f7"
+      },
+      {
+        "file": "scripts/strict_verification_harness.py",
+        "exists": true,
+        "size_bytes": 5999,
+        "sha256": "77fdd03f0016954b76e17ef8e36a4b5855bc9757a684aabf7cb369e8fe746909"
+      },
+      {
+        "file": "scripts/profile_hardware_footprint.py",
+        "exists": true,
+        "size_bytes": 3921,
+        "sha256": "04dd8c1a7ac4b0eb28544a23231cfd0fc5e1cf7c2e153d4f4c7f7b5957a16b12"
+      },
+      {
+        "file": "scripts/benchmark_suite.py",
+        "exists": true,
+        "size_bytes": 5425,
+        "sha256": "e8ffd6b15b15589d68798cd14365c2de3f6c18da0f2774958d735a6464f40d6e"
+      },
+      {
+        "file": "scripts/presentation_mode.py",
+        "exists": true,
+        "size_bytes": 6418,
+        "sha256": "c395f0225464f40c3029827fbd573986d7db0de61e585b8d28ef29f5fda05c80"
+      }
+    ]
+  }
+}

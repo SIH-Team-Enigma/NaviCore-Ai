@@ -1,0 +1,53 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.dylib
+*.dll
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python & ML Checkpoints / Datasets
+*.pt
+*.pth
+*.onnx
+*.tflite
+models/checkpoints/
+data/raw_iovnbd/
+data/IO-VNBD/
+data/osm_tiles/*.mbtiles
+data/osm_tiles/*.pmtiles
+data/osm_tiles/*.pbf
+
+# C++ Build outputs
+build/
+cmake-build-*/
+bin/
+lib/
+*.o
+*.a
+
+# Android Build & Gradle
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+local.properties
+.cxx/
+captures/
+.externalNativeBuild/
+
+# IDE / Editor Files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

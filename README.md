@@ -22,8 +22,8 @@ While luxury autonomous cars solve this using ₹20,000 to ₹1,00,000+ hardware
 
 **NaviCore AI** is a 100% software-driven, edge-native virtual odometer and zero-drift GNSS fusion engine running on standard budget smartphones and ROS2 robotics platforms:
 
-1. **AI Virtual Odometer (1D-CNN / TCN)**: Converts 1.0 s windows of 100 Hz 6-DOF IMU data into forward velocity ($V_x$), filtering out road bumps and potholes.
-2. **Auto-Calibration (LPF + PCA)**: Automatically computes the 3D phone-to-vehicle rotation matrix ($\mathbf{R}_b^v$) within 3 seconds for arbitrary phone mounting orientations.
+1. **AI Virtual Odometer (1D-CNN / TCN)**: Converts 1.0 s windows of IMU data into forward velocity ($V_x$), filtering out road bumps and potholes.
+2. **Auto-Calibration (LPF + PCA)**: Automatically computes the 3D phone-to-vehicle rotation matrix ($\mathbf{R}_b^v$) for arbitrary phone mounting orientations.
 3. **15-State Error-State Kalman Filter (ESKF)**: Learns sensor zero-g accelerometer and gyro biases under open sky; switches to AI speed + Non-Holonomic Constraints (NHC: $V_y=0, V_z=0$) in $<10\text{ ms}$ upon GNSS blackout.
 4. **AI-Triggered Zero-Velocity Update (ZUPT)**: Spectral harmonic classifier detects idling engines in traffic jams and locks velocity to $0.00\text{ m/s}$, stopping drift completely.
 5. **Offline HMM Map-Matching**: Viterbi dynamic programming against offline OpenStreetMap (OSM) vector geometry snaps drifted paths to road centerlines.
@@ -32,7 +32,7 @@ While luxury autonomous cars solve this using ₹20,000 to ₹1,00,000+ hardware
 
 ---
 
-## 📂 Project Documentation & Specifications
+## 📂 Project Documentation & Engineering Guides
 
 Detailed documentation has been generated in the [`docs/`](file:///c:/Users/Manthan/Desktop/SIH168/docs/) directory:
 
@@ -42,6 +42,11 @@ Detailed documentation has been generated in the [`docs/`](file:///c:/Users/Mant
 | **Technical Requirements Document (TRD)** | Deep mathematical formulation, ESKF state equations, Auto-Calibration PCA/LPF math, HMM Viterbi formulation, JNI C++ architecture. | [TRD.md](file:///c:/Users/Manthan/Desktop/SIH168/docs/TRD.md) |
 | **AI & ML Architecture** | 1D-TCN neural topology, IO-VNBD dataset pipeline, multi-task loss, spectral ZUPT harmonic analysis, INT8 quantization & NNAPI acceleration. | [AI_ARCHITECTURE.md](file:///c:/Users/Manthan/Desktop/SIH168/docs/AI_ARCHITECTURE.md) |
 | **Project Roadmap & Timeline** | 6-phase development roadmap, Gantt chart, sprint tasks, team ownership matrix, risk mitigation, and SIH Grand Finale verification checklist. | [ROADMAP.md](file:///c:/Users/Manthan/Desktop/SIH168/docs/ROADMAP.md) |
+| **Technology Stack & Tools Guide** | Comprehensive guide to free/open-source tools (MapLibre, OSM, Eigen, TFLite), prerequisites, and setup instructions. | [TECH_STACK_AND_TOOLS_GUIDE.md](file:///c:/Users/Manthan/Desktop/SIH168/docs/TECH_STACK_AND_TOOLS_GUIDE.md) |
+| **Repository Folder Blueprint** | Advanced folder architecture, modular boundary contracts, and end-to-end data flow diagrams. | [FOLDER_STRUCTURE.md](file:///c:/Users/Manthan/Desktop/SIH168/docs/FOLDER_STRUCTURE.md) |
+| **Internal Module API Contracts** | Signature definitions for Calibration, Virtual Odometer, FusionCore, and MapMatcher interfaces. | [API.MD](file:///c:/Users/Manthan/Desktop/SIH168/docs/API.MD) |
+| **Code Style & Linters** | Multi-language coding standards for Kotlin, C++, Python, and commit conventions. | [CODE-STYLE.md](file:///c:/Users/Manthan/Desktop/SIH168/docs/CODE-STYLE.md) |
+| **Security & Threat Model** | Data classification, least-privilege Android permissions, model verification, and safety-critical failure mitigations. | [SECURITY.md](file:///c:/Users/Manthan/Desktop/SIH168/docs/SECURITY.md) |
 
 ---
 

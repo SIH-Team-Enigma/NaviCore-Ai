@@ -1,39 +1,41 @@
-# API.md
+# API.md — Extra-Detailed Edition
 
 ## Project: NaviCore AI
-**Scope**: Internal module interfaces for the SIH prototype (Kotlin ↔ native fusion core ↔ TFLite odometer), plus the post-hackathon ROS2 topic contract.
-**Status**: Interface design — signatures describe intended contracts; nothing here should be read as a shipped, versioned API yet.
+**Scope**: Internal module interfaces for the SIH prototype (Kotlin ↔ native fusion core ↔ TFLite odometer), plus the post-hackathon ROS2 topic contract. Each interface below is tagged with the Roadmap phase/day that builds it, so the module map doubles as an integration schedule.
+**Status**: Interface design — signatures describe intended contracts, not a shipped, versioned API.
 
-There is **no cloud/REST API** in the MUST-HAVE scope (PRD §4.1) — NaviCore AI is fully offline by design (PRD §5.3). This document covers on-device module boundaries instead.
+No cloud/REST API exists in MUST-HAVE scope — NaviCore AI is fully offline by design (PRD §5.3).
 
 ---
 
-## 1. Module Map
+## 1. Module Map & Build Order
 
 ```
-Android Sensor Layer (Kotlin/NDK)
+Android Sensor Layer (Kotlin/NDK)              — Phase 3, Day 27
         │  IMU samples (6-DOF)
         ▼
-Ingestion & Calibration Module  ──────► Calibration API (§2)
+Ingestion & Calibration Module  ──────► Calibration API (§2)   — Phase 2, Days 11–15
         │  calibrated, windowed IMU tensor
         ▼
-AI Odometer (TFLite, INT8)  ───────────► Odometer Inference API (§3)
+AI Odometer (TFLite, INT8)  ───────────► Odometer Inference API (§3)  — Phase 1, Days 6–10
         │  (Vx, σ², P(stopped))
         ▼
-Fusion Core (ESKF, NHC, ZUPT, heading)  ► Fusion API (§4)
+Fusion Core (ESKF, NHC, ZUPT, heading)  ► Fusion API (§4)   — Phase 2, Days 14–24
         │  (position, heading, covariance)
         ▼
-Map-Matching (HMM/OSM, stretch)  ──────► Map-Matching API (§5)
+Map-Matching (HMM/OSM, stretch)  ──────► Map-Matching API (§5)  — Phase 3, Days 35–36
         │  snapped coordinate
         ▼
-Navigation UI (Kotlin)
+Navigation UI (Kotlin)                          — Phase 3, Days 31–34
 ```
 
-Post-hackathon: the Fusion Core is also exposed as a **ROS2 node** for robotics use (§6), independent of the Android UI.
+Post-hackathon: the Fusion Core is also exposed as a **ROS2 node** (§6), independent of the Android UI.
+
+**Integration order matters**: §3 (odometer) must be frozen before §4 (fusion) integration begins, since the fusion core's `updateOdometer` call depends on the exact `OdometerOutput` shape. This is why Phase 1 (odometer) precedes Phase 2 (fusion) in the Roadmap rather than running in parallel from day one.
 
 ---
 
-## 2. Calibration API
+## 2. Calibration API — built Phase 2, Days 11–15
 
 Resolves the phone-to-vehicle rotation matrix (PRD FR-02).
 
@@ -41,14 +43,14 @@ Resolves the phone-to-vehicle rotation matrix (PRD FR-02).
 interface MountCalibrator {
     /**
      * Feed one raw IMU sample. Internally runs the LPF gravity extraction
-     * and PCA heading extraction described in ML spec §1.
+     * (Day 11) and PCA heading extraction (Day 12) described in ML spec §1.
      */
     fun ingest(sample: ImuSample)
 
     /** Null until enough motion has been observed to resolve R_b^v. */
     fun currentRotation(): RotationMatrix?
 
-    /** True if a dislodgement/reorientation was detected mid-session. */
+    /** True if a dislodgement/reorientation was detected mid-session (Day 13). */
     fun isRecalibrating(): Boolean
 }
 
@@ -63,12 +65,12 @@ data class RotationMatrix(val r: Array<FloatArray>) // 3x3
 ```
 
 **Contract notes**:
-- `currentRotation()` returning `null` must be handled by every downstream consumer — do not assume calibration has completed by a fixed time budget (PRD §3.2 lists calibration time as a *target*, not a guarantee).
-- Recalibration must not discard in-flight fusion state; it should re-align frames without resetting the ESKF's learned biases (PRD FR-02).
+- `currentRotation()` returning `null` must be handled by every downstream consumer.
+- Recalibration (Day 13) must not discard in-flight fusion state — re-align frames without resetting the ESKF's learned biases, verified by a Phase 2 unit test (Day 23).
 
 ---
 
-## 3. Odometer Inference API
+## 3. Odometer Inference API — built Phase 1, Days 6–10
 
 Wraps the TFLite model (ML spec §3).
 
@@ -76,37 +78,37 @@ Wraps the TFLite model (ML spec §3).
 interface VirtualOdometer {
     /**
      * @param window Calibrated, vehicle-frame IMU samples at the model's
-     *   trained input rate (see ML spec §2.1 — NOT assumed to be 100 Hz;
-     *   caller is responsible for the decimate/resample step before this call).
+     *   trained input rate (ML spec §2.1 — NOT assumed 100 Hz; caller is
+     *   responsible for the decimate/resample step before this call).
      */
     fun infer(window: FloatArray): OdometerOutput
 }
 
 data class OdometerOutput(
     val vx: Float,          // predicted forward speed, m/s
-    val varianceVx: Float,  // sigma^2 — feeds adaptive R in the ESKF (ML spec §4)
-    val stoppedProb: Float  // P(vehicle stopped), sigmoid output — ZUPT trigger input
+    val varianceVx: Float,  // sigma^2 — feeds adaptive R in the ESKF (Roadmap Phase 2 Day 17)
+    val stoppedProb: Float  // P(vehicle stopped), sigmoid output — ZUPT trigger input (Day 21)
 )
 ```
 
 **Contract notes**:
-- `window` length and rate must match the model's actual training configuration exactly (ML spec §2.1/§3.1); a mismatch silently degrades accuracy rather than throwing, so the caller must assert the expected shape before calling `infer`.
-- Model file integrity should be checked before load (see SECURITY.md §4) — this interface assumes a verified model is already in place.
-- No accuracy/latency numbers are guaranteed by this interface; PRD §3.2 lists them as targets pending on-device benchmarking.
+- `window` length and rate must match the model's actual training configuration exactly (ML spec §2.1/§3.1) — asserted at call time, not just documented; this assertion is the Phase 1 Day 10 model-I/O-contract test.
+- Model file integrity checked before load (SECURITY.md §4) — implemented Phase 3, when the model is bundled into the app.
+- No accuracy/latency numbers guaranteed by this interface; PRD §3.2 lists them as targets pending Phase 3 Day 38 on-device benchmarking.
 
 ---
 
-## 4. Fusion API (ESKF / NHC / ZUPT / Heading)
+## 4. Fusion API (ESKF / NHC / ZUPT / Heading) — built Phase 2, Days 14–24
 
 ```kotlin
 interface FusionCore {
-    /** Called when a GNSS fix is available (open-sky, PRD FR-07). */
+    /** Called when a GNSS fix is available (open-sky, Day 16). */
     fun updateGnss(fix: GnssFix)
 
-    /** Called every odometer inference cycle (PRD FR-07, blackout path). */
+    /** Called every odometer inference cycle (Day 17, blackout path). */
     fun updateOdometer(output: OdometerOutput)
 
-    /** Non-holonomic pseudo-measurement injection (PRD FR-05). */
+    /** Non-holonomic pseudo-measurement injection (Day 18). */
     fun applyNhcConstraint()
 
     /** Current best position/heading estimate, with explicit uncertainty. */
@@ -122,7 +124,7 @@ data class GnssFix(
 data class FusionState(
     val lat: Double, val lon: Double,
     val headingRad: Float,
-    val headingUncertaintyRad: Float,  // must be surfaced to the UI, not hidden
+    val headingUncertaintyRad: Float,  // Day 19-20 — must be surfaced to the UI, not hidden
     val mode: FusionMode,              // OPEN_SKY | DEAD_RECKONING | ZUPT_LOCKED
     val blackoutDurationMs: Long,      // 0 if not in blackout
     val withinValidatedRange: Boolean  // false once blackoutDurationMs exceeds
@@ -131,13 +133,15 @@ data class FusionState(
 ```
 
 **Contract notes**:
-- `withinValidatedRange` exists specifically so the UI can visibly downgrade confidence once the system is extrapolating beyond what's been validated (SECURITY.md §7, PRD §3.1) — this field is not optional to implement.
-- `headingUncertaintyRad` must grow monotonically during blackout unless a correction (magnetometer or map-match reset, ML spec §5A) brings it down — a caller assuming it stays small is a bug, not a feature.
-- ZUPT engagement/release must be observable by the caller (via `mode`), including a way to detect a *release* from a false lock, per SECURITY.md §7.
+- `withinValidatedRange` exists specifically so the Phase 3 UI can visibly downgrade confidence once the system extrapolates beyond what's validated — implemented Day 22, not optional.
+- `headingUncertaintyRad` must grow monotonically during blackout unless a correction (magnetometer, Day 20, or a map-match reset, Phase 3 stretch) brings it down.
+- ZUPT engagement/release (Day 21) must be observable via `mode`, including detecting a *release* from a false lock (SECURITY.md §7).
+
+**Phase 2 Day 23–24 test plan**: synthetic straight-line trajectory, synthetic turning trajectory, synthetic stop-and-go, then a full run against a recorded IMU log (Day 24) before this interface is considered frozen for Phase 3 integration.
 
 ---
 
-## 5. Map-Matching API (Stretch Goal)
+## 5. Map-Matching API (Stretch Goal) — built Phase 3, Days 35–36, only if Phases 1–2 are on schedule
 
 ```kotlin
 interface MapMatcher {
@@ -153,25 +157,25 @@ data class SnappedCoordinate(
 )
 ```
 
-**Contract notes**: `match` returning `null` is a valid, expected outcome (e.g. in a parking structure with no mapped road graph) and must be handled by the UI as "unmatched, showing raw fusion estimate" rather than treated as an error.
+**Contract notes**: `match` returning `null` is a valid, expected outcome (e.g. in an unmapped parking structure) and must be handled by the UI as "unmatched, showing raw fusion estimate," not as an error.
 
 ---
 
 ## 6. ROS2 Topic Contract (Post-Hackathon — Not Part of SIH Prototype)
 
-Flagged as future scope per Roadmap §3 / PRD §4.1. Defined here early so the Fusion Core's internal API (§4) doesn't need breaking changes later.
+Defined early so the Fusion Core's internal API (§4) doesn't need breaking changes later.
 
 | Topic | Type | Direction | Notes |
 | :--- | :--- | :--- | :--- |
-| `/navicore/imu` | `sensor_msgs/Imu` | Input | Raw 6-DOF stream, higher rate than the phone path (PRD persona table: up to 200 Hz FOG IMU) |
+| `/navicore/imu` | `sensor_msgs/Imu` | Input | Raw 6-DOF stream, higher rate than the phone path (up to 200 Hz FOG IMU per PRD persona table) |
 | `/navicore/odom` | `nav_msgs/Odometry` | Output | Fused position/velocity, mirrors `FusionState` |
-| `/navicore/pose` | `geometry_msgs/PoseWithCovarianceStamped` | Output | Must populate covariance honestly from `headingUncertaintyRad` and the ESKF's position covariance — do not publish a fixed placeholder covariance |
-| `/navicore/status` | custom `navicore_msgs/FusionStatus` | Output | Mirrors `mode` and `withinValidatedRange` — a robotics consumer must be able to detect "extrapolating beyond validated range" the same way the phone UI does |
+| `/navicore/pose` | `geometry_msgs/PoseWithCovarianceStamped` | Output | Must populate covariance honestly from `headingUncertaintyRad` and the ESKF's position covariance — never a fixed placeholder |
+| `/navicore/status` | custom `navicore_msgs/FusionStatus` | Output | Mirrors `mode` and `withinValidatedRange` |
 
-**Security note**: per SECURITY.md §6, these topics should only run on a local, trusted robotics bus (e.g. within a single vehicle's ROS2 domain), not exposed on an open network without its own authentication layer — that layer is undesigned as of this document.
+**Security note**: per SECURITY.md §6, these topics run only on a local, trusted robotics bus, not an open network without its own authentication layer — undesigned as of this document.
 
 ---
 
 ## 7. Versioning
 
-No public API version is cut yet. Once the SIH prototype's module boundaries stabilize (post Roadmap Phase 3), adopt semantic versioning per module (`calibration-v1`, `fusion-v1`, etc.) so the ROS2 extension and any future fleet SDK (PRD §4.1, COULD-HAVE) can depend on a stable contract instead of the Android app's internal implementation details.
+No public API version is cut yet. Once the SIH prototype's module boundaries stabilize (post Phase 3), adopt semantic versioning per module (`calibration-v1`, `fusion-v1`, etc.) so the ROS2 extension and any future fleet SDK can depend on a stable contract instead of the app's internal implementation details.
