@@ -24,12 +24,21 @@ set(NAVICORE_SOURCES
     src/auto_calib.cpp
     src/nhc_zupt.cpp
     src/hmm_matcher.cpp
+    src/pipeline.cpp
 )
 
 # Build Static Core Library
 add_library(navicore_core STATIC ${NAVICORE_SOURCES})
 target_include_directories(navicore_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Test Executable
+# Test Executables
+enable_testing()
+
 add_executable(test_eskf tests/test_eskf.cpp)
 target_link_libraries(test_eskf PRIVATE navicore_core)
+add_test(NAME test_eskf COMMAND test_eskf)
+
+add_executable(test_pipeline tests/test_pipeline.cpp)
+target_link_libraries(test_pipeline PRIVATE navicore_core)
+add_test(NAME test_pipeline COMMAND test_pipeline)
+

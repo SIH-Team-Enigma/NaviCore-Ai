@@ -121,8 +121,30 @@ FusionState EskfFilter::GetState() const {
     }
 
     state.within_validated_range = (state.blackout_duration_ms <= 120000LL); // 120s limit
+    state.covariance_diagonal.assign(p_diag_.begin(), p_diag_.end());
 
     return state;
+}
+
+void EskfFilter::Reset() {
+    lat_ = 19.0760;
+    lon_ = 72.8777;
+    alt_ = 10.0;
+    vn_ = ve_ = vd_ = 0.0f;
+    roll_ = pitch_ = yaw_ = 0.0f;
+    ba_[0] = ba_[1] = ba_[2] = 0.0f;
+    bg_[0] = bg_[1] = bg_[2] = 0.0f;
+    p_diag_.fill(1.0f);
+    p_diag_[0] = p_diag_[1] = p_diag_[2] = 5.0f;
+    p_diag_[3] = p_diag_[4] = p_diag_[5] = 0.5f;
+    p_diag_[6] = p_diag_[7] = p_diag_[8] = 0.05f;
+    p_diag_[9] = p_diag_[10] = p_diag_[11] = 0.02f;
+    p_diag_[12] = p_diag_[13] = p_diag_[14] = 0.005f;
+    current_mode_ = FusionMode::OPEN_SKY;
+    last_gnss_timestamp_nanos_ = 0;
+    blackout_start_nanos_ = 0;
+    current_timestamp_nanos_ = 0;
+    heading_uncertainty_rad_ = 0.01f;
 }
 
 void EskfFilter::LocalNedToGeo(float dn, float de, double& lat, double& lon) const {

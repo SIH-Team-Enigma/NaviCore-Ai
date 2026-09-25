@@ -69,6 +69,11 @@ struct FusionState {
     FusionMode mode{FusionMode::OPEN_SKY};
     int64_t blackout_duration_ms{0};
     bool within_validated_range{true};
+    int64_t snapped_road_id{0};
+    float snapped_confidence{0.0f};
+    bool is_reroute_needed{false};
+    bool is_dislodged{false};
+    std::vector<float> covariance_diagonal{std::vector<float>(15, 0.0f)};
 };
 
 /**

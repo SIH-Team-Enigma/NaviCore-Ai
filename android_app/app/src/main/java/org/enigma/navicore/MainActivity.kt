@@ -12,9 +12,9 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
-import org.enigma.navicore.sensor.NavigationService
-import org.enigma.navicore.ui.MapScreen
-import org.enigma.navicore.ui.NavigationViewModel
+import org.enigma.navicore.service.NavigationService
+import org.enigma.navicore.ui.map.MapScreen
+import org.enigma.navicore.ui.viewmodel.NavigationViewModel
 
 class MainActivity : ComponentActivity() {
 

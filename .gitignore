@@ -5,6 +5,8 @@ __pycache__/
 *.so
 *.dylib
 *.dll
+.pytest_cache/
+
 
 # Virtual Environments
 venv/

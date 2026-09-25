@@ -107,26 +107,31 @@ def export_bundle():
             "android_app/app/src/main/java/org/enigma/navicore/MainActivity.kt"
         ],
         "5. ROS 2 Robotics Node": [
-            "ros2_node/src/navicore_node.cpp",
+            "ros2_node/src/node/navicore_node.cpp",
             "ros2_node/CMakeLists.txt",
             "ros2_node/package.xml"
         ],
         "6. 3D Web Visualizer & Real-time Sensor Server": [
             "web_visualizer/index.html",
-            "web_visualizer/app.js",
-            "web_visualizer/style.css",
+            "web_visualizer/src/js/map-renderer.js",
+            "web_visualizer/src/js/telemetry-panel.js",
+            "web_visualizer/src/js/socket-client.js",
+            "web_visualizer/src/css/style.css",
             "web_visualizer/sensor_stream.html",
-            "scripts/launch_visualizer.py",
-            "scripts/realtime_sensor_server.py"
+            "scripts/demo/launch_visualizer.py",
+            "scripts/demo/realtime_sensor_server.py"
         ],
         "7. Python Fleet SDK & Verification Harnesses": [
-            "sdk_python/navicore_sdk.py",
-            "scripts/test_end_to_end.py",
-            "scripts/verify_vehicle_kinematics.py",
-            "scripts/strict_verification_harness.py",
-            "scripts/profile_hardware_footprint.py",
-            "scripts/benchmark_suite.py",
-            "scripts/presentation_mode.py"
+            "sdk_python/navicore_sdk/__init__.py",
+            "sdk_python/navicore_sdk/fusion.py",
+            "sdk_python/navicore_sdk/state.py",
+            "scripts/verification/test_end_to_end.py",
+            "scripts/verification/verify_vehicle_kinematics.py",
+            "scripts/verification/verify_imu_stream.py",
+            "scripts/verification/strict_verification_harness.py",
+            "scripts/profiling/profile_hardware_footprint.py",
+            "scripts/profiling/benchmark_suite.py",
+            "scripts/demo/presentation_mode.py"
         ]
     }
 

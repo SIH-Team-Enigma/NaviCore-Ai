@@ -1,0 +1,167 @@
+{
+  "timestamp": "2026-09-25T18:44:51Z",
+  "total_scenarios": 16,
+  "passed_scenarios": 16,
+  "results": [
+    {
+      "duration_s": 30.0,
+      "speed_kmh": 20.0,
+      "distance_m": 166.67,
+      "naive_double_int_error_m": 33.12,
+      "standard_ekf_error_m": 6.89,
+      "navicore_error_m": 0.055,
+      "navicore_relative_drift_pct": 0.0332,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 30.0,
+      "speed_kmh": 40.0,
+      "distance_m": 333.33,
+      "naive_double_int_error_m": 36.48,
+      "standard_ekf_error_m": 10.06,
+      "navicore_error_m": 0.076,
+      "navicore_relative_drift_pct": 0.0228,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 30.0,
+      "speed_kmh": 60.0,
+      "distance_m": 500.0,
+      "naive_double_int_error_m": 28.37,
+      "standard_ekf_error_m": 20.06,
+      "navicore_error_m": 0.154,
+      "navicore_relative_drift_pct": 0.0308,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 30.0,
+      "speed_kmh": 80.0,
+      "distance_m": 666.67,
+      "naive_double_int_error_m": 38.12,
+      "standard_ekf_error_m": 18.86,
+      "navicore_error_m": 0.25,
+      "navicore_relative_drift_pct": 0.0375,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 60.0,
+      "speed_kmh": 20.0,
+      "distance_m": 333.33,
+      "naive_double_int_error_m": 107.49,
+      "standard_ekf_error_m": 10.32,
+      "navicore_error_m": 0.078,
+      "navicore_relative_drift_pct": 0.0233,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 60.0,
+      "speed_kmh": 40.0,
+      "distance_m": 666.67,
+      "naive_double_int_error_m": 97.75,
+      "standard_ekf_error_m": 21.51,
+      "navicore_error_m": 0.196,
+      "navicore_relative_drift_pct": 0.0294,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 60.0,
+      "speed_kmh": 60.0,
+      "distance_m": 1000.0,
+      "naive_double_int_error_m": 101.48,
+      "standard_ekf_error_m": 32.08,
+      "navicore_error_m": 0.31,
+      "navicore_relative_drift_pct": 0.031,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 60.0,
+      "speed_kmh": 80.0,
+      "distance_m": 1333.33,
+      "naive_double_int_error_m": 97.09,
+      "standard_ekf_error_m": 42.79,
+      "navicore_error_m": 0.355,
+      "navicore_relative_drift_pct": 0.0266,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 120.0,
+      "speed_kmh": 20.0,
+      "distance_m": 666.67,
+      "naive_double_int_error_m": 371.84,
+      "standard_ekf_error_m": 25.99,
+      "navicore_error_m": 0.157,
+      "navicore_relative_drift_pct": 0.0236,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 120.0,
+      "speed_kmh": 40.0,
+      "distance_m": 1333.33,
+      "naive_double_int_error_m": 372.71,
+      "standard_ekf_error_m": 48.39,
+      "navicore_error_m": 0.278,
+      "navicore_relative_drift_pct": 0.0208,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 120.0,
+      "speed_kmh": 60.0,
+      "distance_m": 2000.0,
+      "naive_double_int_error_m": 374.11,
+      "standard_ekf_error_m": 60.77,
+      "navicore_error_m": 0.423,
+      "navicore_relative_drift_pct": 0.0212,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 120.0,
+      "speed_kmh": 80.0,
+      "distance_m": 2666.67,
+      "naive_double_int_error_m": 379.23,
+      "standard_ekf_error_m": 110.72,
+      "navicore_error_m": 0.921,
+      "navicore_relative_drift_pct": 0.0346,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 300.0,
+      "speed_kmh": 20.0,
+      "distance_m": 1666.67,
+      "naive_double_int_error_m": 2259.57,
+      "standard_ekf_error_m": 48.95,
+      "navicore_error_m": 0.539,
+      "navicore_relative_drift_pct": 0.0323,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 300.0,
+      "speed_kmh": 40.0,
+      "distance_m": 3333.33,
+      "naive_double_int_error_m": 2261.6,
+      "standard_ekf_error_m": 99.03,
+      "navicore_error_m": 0.964,
+      "navicore_relative_drift_pct": 0.0289,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 300.0,
+      "speed_kmh": 60.0,
+      "distance_m": 5000.0,
+      "naive_double_int_error_m": 2255.52,
+      "standard_ekf_error_m": 203.65,
+      "navicore_error_m": 1.233,
+      "navicore_relative_drift_pct": 0.0247,
+      "status": "PASS"
+    },
+    {
+      "duration_s": 300.0,
+      "speed_kmh": 80.0,
+      "distance_m": 6666.67,
+      "naive_double_int_error_m": 2264.94,
+      "standard_ekf_error_m": 215.76,
+      "navicore_error_m": 1.957,
+      "navicore_relative_drift_pct": 0.0294,
+      "status": "PASS"
+    }
+  ]
+}

@@ -99,7 +99,47 @@ Detailed documentation has been generated in the [`docs/`](file:///c:/Users/Mant
 
 ---
 
+## 🎮 Grand Finale Live Judge Demo & 1-Command Workflows
+
+### 1. Interactive 3D Web Visualizer & Realtime Sensor Dashboard
+Launch the interactive MapLibre 3D visualizer and live telemetry dashboard:
+```powershell
+python scripts/demo/launch_visualizer.py
+```
+*Access in browser at [http://localhost:8080/index.html](http://localhost:8080/index.html).*
+
+### 2. Replay Recorded Field Test Run with Live Blackout Injection
+Stream recorded high-rate sensor field log (`data/field_logs/live_test_run.csv`) through the ESKF Dead Reckoning Engine in real-time:
+```powershell
+python scripts/demo/launch_visualizer.py --replay data/field_logs/live_test_run.csv
+```
+
+### 3. Automated Headless Visualizer & Sensor Server Verification
+Run end-to-end integration test verifying asset delivery, socket round-trip latency ($< 50\text{ ms}$), and mode switching:
+```powershell
+python scripts/demo/launch_visualizer.py --replay data/field_logs/live_test_run.csv --headless-test
+```
+
+### 4. ROS 2 Node GNSS-Blackout & AI-Odometer Verification
+Run the ROS 2 node synthetic test harness verifying hot-switching to dead reckoning and REP-105 standard compliance:
+```powershell
+python scripts/verification/test_end_to_end.py --target ros2 --inject-blackout 45
+```
+
+### 5. Full 10-Stage Master Architecture Test Suite
+```powershell
+python scripts/verification/test_end_to_end.py
+```
+
+### 6. Strict Mathematical Verification Suite
+```powershell
+python scripts/verification/strict_verification_harness.py
+```
+
+---
+
 ## 👥 Team Information
 - **Team Name**: @enigm@ (Team ID: 132834)
 - **Problem Statement ID**: 260168
 - **Category**: Smart Vehicles (Software)
+

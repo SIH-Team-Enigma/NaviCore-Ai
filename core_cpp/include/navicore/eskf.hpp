@@ -40,6 +40,16 @@ public:
      */
     FusionState GetState() const;
 
+    /**
+     * @brief Returns 15-state error covariance diagonal.
+     */
+    std::array<float, 15> GetCovarianceDiagonal() const { return p_diag_; }
+
+    /**
+     * @brief Resets filter state and covariance.
+     */
+    void Reset();
+
 private:
     // Nominal state
     double lat_{19.0760};   // Degrees

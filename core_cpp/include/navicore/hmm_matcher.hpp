@@ -30,7 +30,7 @@ struct SnappedResult {
  */
 class HmmMapMatcher {
 public:
-    HmmMapMatcher(float sigma_z = 4.0f, float beta = 3.0f);
+    HmmMapMatcher(float sigma_z = 25.0f, float beta = 3.0f);
 
     /**
      * @brief Load road segments into local spatial index.

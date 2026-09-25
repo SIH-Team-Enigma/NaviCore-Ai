@@ -11,14 +11,22 @@ find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/AiOdometer.msg"
+  DEPENDENCIES std_msgs
+)
 
 include_directories(
   include
+  src
   ../core_cpp/include
 )
 
 add_executable(navicore_node
-  src/navicore_node.cpp
+  src/node/navicore_node.cpp
+  src/bridge/ai_odometer_bridge.cpp
   ../core_cpp/src/eskf.cpp
   ../core_cpp/src/auto_calib.cpp
 )
@@ -30,6 +38,10 @@ ament_target_dependencies(navicore_node
   geometry_msgs
   std_msgs
 )
+
+rosidl_get_typesupport_target(cpp_typesupport_target
+  ${PROJECT_NAME} "rosidl_typesupport_cpp")
+target_link_libraries(navicore_node "${cpp_typesupport_target}")
 
 install(TARGETS
   navicore_node

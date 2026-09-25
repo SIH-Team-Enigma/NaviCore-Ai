@@ -11,6 +11,9 @@ add_library(navicore_jni SHARED
     jni_bridge.cpp
     ../../../../core_cpp/src/eskf.cpp
     ../../../../core_cpp/src/auto_calib.cpp
+    ../../../../core_cpp/src/nhc_zupt.cpp
+    ../../../../core_cpp/src/hmm_matcher.cpp
+    ../../../../core_cpp/src/pipeline.cpp
 )
 
 find_library(log-lib log)

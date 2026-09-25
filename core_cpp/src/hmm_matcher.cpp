@@ -39,7 +39,7 @@ std::optional<SnappedResult> HmmMapMatcher::Match(const FusionState& state) {
 
         float score = emission_prob * heading_weight * transition_prob;
 
-        if (d_perp < 25.0f && score > best_prob) { // Only snap if within 25 meters of a road
+        if (d_perp < 30.0f && score > best_prob) { // Only snap if within 30 meters of a road
             best_prob = score;
             best_snap.lat = snap_lat;
             best_snap.lon = snap_lon;
