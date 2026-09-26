@@ -1,3 +1,3 @@
 #pragma once
 
-#include "pipeline.hpp"
+#include "pipeline/navicore_pipeline.hpp"

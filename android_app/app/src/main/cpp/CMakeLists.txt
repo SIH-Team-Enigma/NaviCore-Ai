@@ -9,11 +9,11 @@ include_directories(
 
 add_library(navicore_jni SHARED
     jni_bridge.cpp
-    ../../../../core_cpp/src/eskf.cpp
-    ../../../../core_cpp/src/auto_calib.cpp
-    ../../../../core_cpp/src/nhc_zupt.cpp
-    ../../../../core_cpp/src/hmm_matcher.cpp
-    ../../../../core_cpp/src/pipeline.cpp
+    ../../../../core_cpp/src/fusion/eskf.cpp
+    ../../../../core_cpp/src/calibration/auto_calib.cpp
+    ../../../../core_cpp/src/zupt/nhc_zupt.cpp
+    ../../../../core_cpp/src/mapmatch/hmm_matcher.cpp
+    ../../../../core_cpp/src/pipeline/navicore_pipeline.cpp
 )
 
 find_library(log-lib log)

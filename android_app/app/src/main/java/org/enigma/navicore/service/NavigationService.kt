@@ -50,12 +50,19 @@ class NavigationService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private lateinit var sensorManager: ImuSensorManager
     private val fusionCore = FusionCore()
-    private val virtualOdometer = LocalVirtualOdometer()
+    private var virtualOdometer: VirtualOdometer = LocalVirtualOdometer()
     private var wakeLock: PowerManager.WakeLock? = null
     private lateinit var notificationManager: NotificationManager
 
     override fun onCreate() {
         super.onCreate()
+        try {
+            virtualOdometer = TfliteVirtualOdometer(this)
+            Log.i(TAG, "Initialized TfliteVirtualOdometer with hardware acceleration.")
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to initialize TfliteVirtualOdometer, using LocalVirtualOdometer fallback: ${e.message}")
+            virtualOdometer = LocalVirtualOdometer()
+        }
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         createNotificationChannel()
 
@@ -198,6 +205,7 @@ class NavigationService : Service() {
                 Log.i(TAG, "WakeLock released.")
             }
         }
+        (virtualOdometer as? AutoCloseable)?.close()
         super.onDestroy()
     }
 

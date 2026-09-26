@@ -27,8 +27,11 @@ def export_model_artifacts(output_dir: str = "models/exported"):
     print("=" * 65)
 
     if not _HAS_TORCH:
-        print("[!] PyTorch not found. Generating simulated INT8 deployment metadata...")
         tflite_path = os.path.join(output_dir, "navicore_odometer_int8.tflite")
+        if os.path.exists(tflite_path) and os.path.getsize(tflite_path) > 1024:
+            print(f"[✓] Existing production INT8 model detected ({os.path.getsize(tflite_path)} bytes): {tflite_path}")
+            return True
+        print("[!] PyTorch not found. Generating simulated INT8 deployment metadata...")
         with open(tflite_path, "wb") as f:
             f.write(b"TFL3_NAVICORE_INT8_MODEL_CONTAINER_V1")
         print(f"[✓] Exported mock INT8 mobile artifact: {tflite_path}")

@@ -27,8 +27,8 @@ include_directories(
 add_executable(navicore_node
   src/node/navicore_node.cpp
   src/bridge/ai_odometer_bridge.cpp
-  ../core_cpp/src/eskf.cpp
-  ../core_cpp/src/auto_calib.cpp
+  ../core_cpp/src/fusion/eskf.cpp
+  ../core_cpp/src/calibration/auto_calib.cpp
 )
 
 ament_target_dependencies(navicore_node

@@ -17,8 +17,9 @@ ENV/
 # Python & ML Checkpoints / Datasets
 *.pt
 *.pth
-*.onnx
 *.tflite
+!models/exported/*.tflite
+!android_app/app/src/main/assets/*.tflite
 models/checkpoints/
 data/raw_iovnbd/
 data/IO-VNBD/
